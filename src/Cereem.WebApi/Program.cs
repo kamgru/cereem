@@ -1,6 +1,4 @@
 using System.Reflection;
-using Cereem.WebApi.Data;
-using Microsoft.EntityFrameworkCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +15,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors(opt =>
+    {
+        opt.AllowAnyMethod();
+        opt.AllowAnyOrigin();
+        opt.AllowAnyHeader();
+    });
 }
 
 app.MapControllers()

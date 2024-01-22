@@ -1,0 +1,20 @@
+<p>add-contact works!</p>
+<form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+    <div>
+        <label>Name</label>
+        <input type="text" formControlName="name" required>
+    </div>
+    <div>
+        <label>Company</label>
+        <input type="text" formControlName="company">
+    </div>
+    <div>
+        <label>Phone</label>
+        <input type="text" formControlName="phone">
+    </div>
+    <div>
+        <label>Email</label>
+        <input type="text" formControlName="email">
+    </div>
+    <button type="submit" [disabled]="!contactForm.valid">Submit</button>
+</form>

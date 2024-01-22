@@ -1,6 +1,6 @@
 namespace Cereem.WebApi.Features.Contacts;
 
-public partial class ContactController : ControllerBase
+public partial class ContactController
 {
     [HttpGet]
     [ProducesResponseType<ListContactsResponse>(StatusCodes.Status200OK)]
@@ -39,8 +39,6 @@ public partial class ContactController : ControllerBase
     
     public class ListContactsResponse
     {
-        public int Page { get; set; }
-        public int PageSize { get; set; }
         public int TotalCount { get; set; }
         public List<ContactItem> Items { get; set; } = [];
     }
@@ -86,8 +84,6 @@ public partial class ContactController : ControllerBase
 
             return CereemResult<ListContactsResponse>.Success(new ListContactsResponse
             {
-                Page = request.Page,
-                PageSize = request.PageSize,
                 TotalCount = totalCount,
                 Items = contacts
             });
