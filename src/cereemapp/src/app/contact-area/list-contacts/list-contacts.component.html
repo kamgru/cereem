@@ -2,24 +2,46 @@
     <a routerLink="../add">New Contact</a>
 </div>
 <div>
-    <table>
-        <thead>
+    <input #searchInput type="text" placeholder="Search" (input)="search$.next(searchInput.value)"/>
+</div>
+
+@if (contacts$ | async; as contacts) {
+    <div>
+        {{currentIndex}}
+    </div>
+    <div>
+        <select #pageSizeSelect (keydown)="$event.preventDefault()" (change)="$event.preventDefault(); pageSize$.next(+pageSizeSelect.value)">
+            @for (pageSize of [5, 10, 20, 50]; track pageSize) {
+                <option [value]="pageSize" [selected]="pageSize == req.pageSize">{{pageSize}}</option>
+            }))
+        </select>
+        <table>
+            <thead>
             <tr>
-                <th>Name</th>
-                <th>Company</th>
+                <th (click)="sortBy$.next('name')">Name</th>
+                <th (click)="sortBy$.next('company')">Company</th>
                 <th>Phone</th>
                 <th>Email</th>
             </tr>
-        </thead>
-        <tbody>
-        @for(contact of contacts$ | async; track contact.id){
+            </thead>
+            <tbody>
+                @for (contact of contacts.items; track contact.id; let i = $index) {
+                    <tr [class.idx]="i == currentIndex">
+                        <td>{{(req.page - 1) * req.pageSize + i + 1}}</td>
+                        <td><a routerLink="../{{contact.id}}">{{ contact.name }}</a></td>
+                        <td>{{ contact.company }}</td>
+                        <td>{{ contact.phone }}</td>
+                        <td>{{ contact.email }}</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
             <tr>
-                <td><a routerLink="../{{contact.id}}">{{contact.name}}</a></td>
-                <td>{{contact.company}}</td>
-                <td>{{contact.phone}}</td>
-                <td>{{contact.email}}</td>
+                <td colspan="4">
+                    <button type="button" (click)="onNextPage()">Next Page</button>
+                </td>
             </tr>
-        }
-        </tbody>
-    </table>
-</div>
+            </tfoot>
+        </table>
+    </div>
+}

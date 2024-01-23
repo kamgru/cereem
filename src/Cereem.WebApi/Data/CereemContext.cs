@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cereem.WebApi.Data;
@@ -10,6 +9,7 @@ public class Contact
     public required string Name { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
+    public Company? Company { get; set; }
     
     public class TypeConfig : IEntityTypeConfiguration<Contact>
     {

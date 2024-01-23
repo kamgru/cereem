@@ -20,7 +20,7 @@ export class ListContactsRequest {
     public page: number = 1;
     public pageSize: number = 10;
     public search: string = '';
-    public sortBy: string = '';
+    public sortBy: string = 'name';
     public sortDesc: boolean = false;
 }
 
@@ -37,7 +37,9 @@ export class ContactService {
     ) {
     }
 
-    public addContact(contact: IContact) {
+    public addContact(contact: IContact) : Observable<any>{
+        return this.http.post(`${environment.apiUrl}/api/v1/contact`, contact);
+
     }
 
     public listContacts(req: ListContactsRequest): Observable<IListContactsResponse> {

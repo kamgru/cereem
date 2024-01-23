@@ -1,12 +1,12 @@
 import {Component} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {RouterOutlet} from '@angular/router';
 import {ContactAreaComponent} from "./contact-area/contact-area.component";
 
 @Component({
     selector: 'app-root',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, ContactAreaComponent],
+    imports: [RouterOutlet, ContactAreaComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css'
 })

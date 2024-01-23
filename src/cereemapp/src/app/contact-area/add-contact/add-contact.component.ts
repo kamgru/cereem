@@ -29,9 +29,12 @@ export class AddContactComponent {
 
     onSubmit() {
         if (this.contactForm.valid) {
-            this.contactService.addContact(<IContact>this.contactForm.value);
-            this.router.navigate(['list'], {relativeTo: this.activatedRoute.parent})
-                .then(() => {});
+            this.contactService.addContact(<IContact>this.contactForm.value)
+                .subscribe(x => {
+                    console.log(x);
+                    this.router.navigate(['list'], {relativeTo: this.activatedRoute.parent})
+                        .then(() => {});
+                })
         }
     }
 }
