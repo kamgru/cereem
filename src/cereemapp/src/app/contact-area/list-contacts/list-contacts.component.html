@@ -10,16 +10,23 @@
         {{currentIndex}}
     </div>
     <div>
-        <select #pageSizeSelect (keydown)="$event.preventDefault()" (change)="$event.preventDefault(); pageSize$.next(+pageSizeSelect.value)">
+        total items: {{contacts.totalCount}}
+        total pages: {{totalPages}}
+        current page: {{req.page}}
+    </div>
+    <div>
+        <select #pageSizeSelect (keydown)="$event.preventDefault()" (change)="$event.preventDefault(); changePageSize(+pageSizeSelect.value)">
             @for (pageSize of [5, 10, 20, 50]; track pageSize) {
                 <option [value]="pageSize" [selected]="pageSize == req.pageSize">{{pageSize}}</option>
             }))
         </select>
+        <
         <table>
             <thead>
             <tr>
-                <th (click)="sortBy$.next('name')">Name</th>
-                <th (click)="sortBy$.next('company')">Company</th>
+                <th>#</th>
+                <th (click)="sortBy('name')">Name</th>
+                <th (click)="sortBy('company')">Company</th>
                 <th>Phone</th>
                 <th>Email</th>
             </tr>
@@ -38,7 +45,7 @@
             <tfoot>
             <tr>
                 <td colspan="4">
-                    <button type="button" (click)="onNextPage()">Next Page</button>
+                    <button type="button" (click)="tryNextPage()">Next Page</button>
                 </td>
             </tr>
             </tfoot>
