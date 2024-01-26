@@ -2,22 +2,22 @@
     <a routerLink="../add">New Contact</a>
 </div>
 <div>
-    <input #searchInput type="text" placeholder="Search" (input)="search$.next(searchInput.value)"/>
+    <input #searchInput type="text" placeholder="Search" (input)="search(searchInput.value)"/>
 </div>
 
 @if (contacts$ | async; as contacts) {
     <div>
-        {{currentIndex}}
+        {{currentIndex_$()}}
     </div>
     <div>
         total items: {{contacts.totalCount}}
-        total pages: {{totalPages}}
-        current page: {{req.page}}
+        total pages: {{totalPages_$()}}
+        current page: {{page_$()}}
     </div>
     <div>
         <select #pageSizeSelect (keydown)="$event.preventDefault()" (change)="$event.preventDefault(); changePageSize(+pageSizeSelect.value)">
             @for (pageSize of [5, 10, 20, 50]; track pageSize) {
-                <option [value]="pageSize" [selected]="pageSize == req.pageSize">{{pageSize}}</option>
+                <option [value]="pageSize" [selected]="pageSize == pageSize_$()">{{pageSize}}</option>
             }))
         </select>
         <
@@ -33,8 +33,8 @@
             </thead>
             <tbody>
                 @for (contact of contacts.items; track contact.id; let i = $index) {
-                    <tr [class.idx]="i == currentIndex">
-                        <td>{{(req.page - 1) * req.pageSize + i + 1}}</td>
+                    <tr [class.idx]="i == currentIndex_$()">
+                        <td>{{(page_$() - 1) * pageSize_$() + i + 1}}</td>
                         <td><a routerLink="../{{contact.id}}">{{ contact.name }}</a></td>
                         <td>{{ contact.company }}</td>
                         <td>{{ contact.phone }}</td>

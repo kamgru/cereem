@@ -1,27 +1,7 @@
-import {
-    Component,
-    HostListener,
-    OnInit
-} from '@angular/core';
-
+import {Component, HostListener} from '@angular/core';
 import {RouterLink} from "@angular/router";
-import {
-    ContactService,
-    IListContactsResponse,
-    ListContactsRequest
-} from "../contact.service";
-
 import {AsyncPipe} from "@angular/common";
-import {
-    BehaviorSubject,
-    Observable,
-    switchMap,
-    tap,
-    debounceTime,
-    distinctUntilChanged,
-    merge,
-    Subject
-} from "rxjs";
+import {tap} from "rxjs";
 import {ListContactsService} from "./list-contacts.service";
 
 @Component({
@@ -35,29 +15,29 @@ import {ListContactsService} from "./list-contacts.service";
     styleUrl: './list-contacts.component.css'
 })
 export class ListContactsComponent {
-
-    public req = new ListContactsRequest();
+    private _count = 0;
 
     @HostListener('window:keydown', ['$event'])
     keyEvent(event: KeyboardEvent) {
         if (event.key == 'ArrowDown') {
-            this.currentIndex++;
-            if (this.currentIndex > this.req.pageSize - 1) {
+            this.currentIndex_$.set(this.currentIndex_$() + 1);
+            if (this.currentIndex_$() > this._count - 1) {
                 if (this.tryNextPage()) {
-                    this.currentIndex = 0;
+                    this.currentIndex_$.set(0);
                 } else {
-                    this.currentIndex = this.req.pageSize - 1;
+                    this.currentIndex_$.set(this._count - 1);
                 }
             }
         } else if (event.key == 'ArrowUp') {
-            this.currentIndex--;
-            if (this.currentIndex < 0) {
-                if (this.req.page > 1) {
+            this.currentIndex_$.set(this.currentIndex_$() - 1);
+            if (this.currentIndex_$() < 0) {
+                if (this.page_$() > 1) {
                     if (this.tryPrevPage()) {
-                        this.currentIndex = this.req.pageSize - 1;
+                        this.currentIndex_$.set(this.pageSize_$() - 1);
                     }
                 } else {
-                    this.currentIndex = 0;
+                    this.currentIndex_$.set(0);
+
                 }
             }
         } else if (event.key == 'ArrowRight' || event.key == 'PageDown') {
@@ -68,22 +48,22 @@ export class ListContactsComponent {
     }
 
 
-    public totalPages = 0;
-    public currentIndex = 0;
-    public contacts$?: Observable<IListContactsResponse>;
-    public search$ = new Subject<string>();
+    public totalPages_$ = this.listContacts.totalPages_$;
+    public currentIndex_$ = this.listContacts.currentIndex_$;
+    public pageSize_$ = this.listContacts.pageSize_$;
+    public page_$ = this.listContacts.page_$;
+    public contacts$ = this.listContacts.contacts$
+        .pipe(tap(x => this._count = x.items.length));
 
     constructor(
         private listContacts: ListContactsService
     ) {
-        this.contacts$ = this.listContacts.contacts$.pipe(
-            tap(_ => this.totalPages = this.listContacts.totalPages_$())
-        );
     }
 
     public changePageSize = (value: number) => this.listContacts.changePageSize(value);
     public tryNextPage = () => this.listContacts.tryNextPage();
     public tryPrevPage = () => this.listContacts.tryPrevPage();
     public sortBy = (value: string) => this.listContacts.sortBy(value);
+    public search = (value: string) => this.listContacts.search(value);
 
 }
