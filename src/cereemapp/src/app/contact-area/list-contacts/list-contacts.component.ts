@@ -1,8 +1,9 @@
-import {Component, HostListener} from '@angular/core';
-import {RouterLink} from "@angular/router";
+import {Component, ElementRef, HostListener, ViewChild} from '@angular/core';
+import {Router, RouterLink} from "@angular/router";
 import {AsyncPipe} from "@angular/common";
-import {tap} from "rxjs";
+import {map, tap} from "rxjs";
 import {ListContactsService} from "./list-contacts.service";
+import {IContact} from "../contact.service";
 
 @Component({
     selector: 'app-list-contacts',
@@ -17,9 +18,17 @@ import {ListContactsService} from "./list-contacts.service";
 export class ListContactsComponent {
     private _count = 0;
 
+    @ViewChild('searchInput')
+    searchInput?: ElementRef<HTMLInputElement>;
+
     @HostListener('window:keydown', ['$event'])
     keyEvent(event: KeyboardEvent) {
-        if (event.key == 'ArrowDown') {
+        if (event.ctrlKey && event.key == '/') {
+            this.searchInput?.nativeElement.focus();
+            event.preventDefault();
+        } else if (event.key == 'Escape') {
+            this.searchInput?.nativeElement.blur();
+        } else if (event.key == 'ArrowDown') {
             this.currentIndex_$.set(this.currentIndex_$() + 1);
             if (this.currentIndex_$() > this._count - 1) {
                 if (this.tryNextPage()) {
@@ -37,16 +46,25 @@ export class ListContactsComponent {
                     }
                 } else {
                     this.currentIndex_$.set(0);
-
                 }
             }
         } else if (event.key == 'ArrowRight' || event.key == 'PageDown') {
             this.tryNextPage();
         } else if (event.key == 'ArrowLeft' || event.key == 'PageUp') {
             this.tryPrevPage();
+        } else if (event.key == 'Enter') {
+            const contact$ = this.contacts$.pipe(
+                map(data => {
+                    return data.items[this.currentIndex_$()];
+                })
+            )
+
+            const subscription = contact$.subscribe(x => {
+                this.router.navigate([`contacts/details/${x.contactId}`])
+                    .then(_ => subscription.unsubscribe());
+            })
         }
     }
-
 
     public totalPages_$ = this.listContacts.totalPages_$;
     public currentIndex_$ = this.listContacts.currentIndex_$;
@@ -56,7 +74,8 @@ export class ListContactsComponent {
         .pipe(tap(x => this._count = x.items.length));
 
     constructor(
-        private listContacts: ListContactsService
+        private listContacts: ListContactsService,
+        private router: Router
     ) {
     }
 
@@ -66,4 +85,10 @@ export class ListContactsComponent {
     public sortBy = (value: string) => this.listContacts.sortBy(value);
     public search = (value: string) => this.listContacts.search(value);
 
+    handleRowClick(index: number, contact: IContact) {
+        this.currentIndex_$.set(index);
+        this.router.navigate([`contacts/details/${contact.contactId}`])
+            .then(_ => {
+            });
+    }
 }
