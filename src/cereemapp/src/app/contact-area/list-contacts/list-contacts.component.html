@@ -4,9 +4,6 @@
 
 @if (contacts$ | async; as contacts) {
     <div>
-        {{ currentIndex_$() }}
-    </div>
-    <div>
         total items: {{ contacts.totalCount }}
         total pages: {{ totalPages_$() }}
         current page: {{ page_$() }}
@@ -42,9 +39,13 @@
             </tbody>
             <tfoot>
             <tr>
-                <td colspan="4">
+                <td>
+                    <button type="button" (click)="tryPrevPage()">Prev Page</button>
+                </td>
+                <td>
                     <button type="button" (click)="tryNextPage()">Next Page</button>
                 </td>
+
             </tr>
             </tfoot>
         </table>

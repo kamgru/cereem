@@ -1,6 +1,16 @@
 import {Injectable, signal} from '@angular/core';
-import {BehaviorSubject, debounceTime, distinctUntilChanged, merge, Observable, Subject, switchMap, tap} from "rxjs";
-import {IListContactsResponse, ListContactsRequest} from "../contact.service";
+import {
+    BehaviorSubject,
+    debounceTime,
+    distinctUntilChanged,
+    map,
+    merge,
+    Observable,
+    Subject,
+    switchMap,
+    tap
+} from "rxjs";
+import {IContact, IListContactsResponse, ListContactsRequest} from "../contact.service";
 import {HttpClient} from "@angular/common/http";
 import {environment} from "../../../environments/environment";
 
@@ -14,12 +24,14 @@ export class ListContactsService {
     private _page$ = new BehaviorSubject<number>(this._request.page);
     private _sortBy$ = new Subject<string>();
     private _pageSize$ = new Subject<number>();
+    private _count: number = 0;
 
     public totalPages_$ = signal(10);
     public currentIndex_$ = signal(0);
     public pageSize_$ = signal(10);
     public page_$ = signal(1);
     public contacts$: Observable<IListContactsResponse>;
+    public selectedContact$: Subject<IContact> = new Subject<IContact>();
 
     constructor(
         private http: HttpClient,
@@ -67,6 +79,7 @@ export class ListContactsService {
             .pipe(
                 tap(x => {
                     this.totalPages_$.set(Math.ceil(x.totalCount / this._request.pageSize));
+                    this._count = x.items.length;
                 }));
     }
 
@@ -111,5 +124,55 @@ export class ListContactsService {
 
     search(value: string) {
         this._search$.next(value);
+    }
+
+    tryHandleKey(event: KeyboardEvent) : boolean {
+        switch (event.key) {
+            case 'ArrowDown': {
+                this.currentIndex_$.set(this.currentIndex_$() + 1);
+                if (this.currentIndex_$() > this._count - 1) {
+                    if (this.tryNextPage()) {
+                        this.currentIndex_$.set(0);
+                    } else {
+                        this.currentIndex_$.set(this._count - 1);
+                    }
+                }
+                return true;
+            }
+            case 'ArrowUp': {
+                this.currentIndex_$.set(this.currentIndex_$() - 1);
+                if (this.currentIndex_$() < 0) {
+                    if (this.page_$() > 1) {
+                        if (this.tryPrevPage()) {
+                            this.currentIndex_$.set(this.pageSize_$() - 1);
+                        }
+                    } else {
+                        this.currentIndex_$.set(0);
+                    }
+                }
+                return true;
+            }
+            case 'PageDown': {
+                this.tryNextPage();
+                return true;
+            }
+            case 'PageUp': {
+                this.tryPrevPage();
+                return true;
+            }
+            case 'Enter': {
+                const subs = this.contacts$.pipe(
+                    map(x => {
+                        return x.items[this.currentIndex_$()]
+                    }))
+                    .subscribe(x => {
+                        this.selectedContact$.next(x)
+                        subs.unsubscribe();
+                    });
+
+                return true;
+            }
+        }
+        return false;
     }
 }
