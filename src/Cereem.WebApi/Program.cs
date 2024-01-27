@@ -72,3 +72,23 @@ public class CereemResult<TData>
         string message) =>
         new(default, message, false);
 }
+
+public class CereemResult
+{
+    private CereemResult(
+        bool isSuccessful,
+        string? message)
+    {
+        IsSuccessful = isSuccessful;
+        Message = message;
+    }
+    
+    public bool IsSuccessful { get; }
+    public string? Message { get; }
+    
+    public static CereemResult Success() =>
+        new(true, null);
+    
+    public static CereemResult Failure(string message) =>
+        new(false, message);
+}
