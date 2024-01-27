@@ -1,18 +1,9 @@
-import {Component, HostListener, OnInit} from '@angular/core';
-import {RouterLink} from "@angular/router";
-import {ContactService, IContact, IListContactsResponse, ListContactsRequest} from "../contact.service";
+import {Component, ElementRef, HostListener, ViewChild} from '@angular/core';
+import {Router, RouterLink} from "@angular/router";
 import {AsyncPipe} from "@angular/common";
-import {
-    BehaviorSubject,
-    debounce,
-    delay,
-    Observable,
-    switchMap,
-    tap,
-    combineLatest,
-    debounceTime,
-    distinctUntilChanged, mergeAll, merge, Subject, filter, map
-} from "rxjs";
+import {map, tap} from "rxjs";
+import {ListContactsService} from "./list-contacts.service";
+import {IContact} from "../contact.service";
 
 @Component({
     selector: 'app-list-contacts',
@@ -24,98 +15,80 @@ import {
     templateUrl: './list-contacts.component.html',
     styleUrl: './list-contacts.component.css'
 })
-export class ListContactsComponent implements OnInit {
+export class ListContactsComponent {
+    private _count = 0;
 
-    public req = new ListContactsRequest();
-
-    private keypress$ = new Subject<KeyboardEvent>();
+    @ViewChild('searchInput')
+    searchInput?: ElementRef<HTMLInputElement>;
 
     @HostListener('window:keydown', ['$event'])
     keyEvent(event: KeyboardEvent) {
-        if (event.key == 'ArrowDown'){
-            this.currentIndex++;
-            if (this.currentIndex > this.req.pageSize - 1) {
-                this.currentIndex = 0;
-                this.page$.next(this.page$.getValue() + 1);
-            }
-        } else if (event.key == 'ArrowUp') {
-            this.currentIndex--;
-            if (this.currentIndex < 0) {
-                if (this.req.page > 1) {
-                    this.currentIndex = this.req.pageSize - 1;
-                    this.page$.next(this.page$.getValue() - 1);
-                }else {
-                    this.currentIndex = 0;
+        if (event.ctrlKey && event.key == '/') {
+            this.searchInput?.nativeElement.focus();
+            event.preventDefault();
+        } else if (event.key == 'Escape') {
+            this.searchInput?.nativeElement.blur();
+        } else if (event.key == 'ArrowDown') {
+            this.currentIndex_$.set(this.currentIndex_$() + 1);
+            if (this.currentIndex_$() > this._count - 1) {
+                if (this.tryNextPage()) {
+                    this.currentIndex_$.set(0);
+                } else {
+                    this.currentIndex_$.set(this._count - 1);
                 }
             }
-        } else if (event.key == 'ArrowRight'){
-            this.page$.next(this.page$.getValue() + 1);
-        } else if (event.key == 'ArrowLeft') {
-            this.page$.next(this.page$.getValue() - 1);
+        } else if (event.key == 'ArrowUp') {
+            this.currentIndex_$.set(this.currentIndex_$() - 1);
+            if (this.currentIndex_$() < 0) {
+                if (this.page_$() > 1) {
+                    if (this.tryPrevPage()) {
+                        this.currentIndex_$.set(this.pageSize_$() - 1);
+                    }
+                } else {
+                    this.currentIndex_$.set(0);
+                }
+            }
+        } else if (event.key == 'ArrowRight' || event.key == 'PageDown') {
+            this.tryNextPage();
+        } else if (event.key == 'ArrowLeft' || event.key == 'PageUp') {
+            this.tryPrevPage();
+        } else if (event.key == 'Enter') {
+            const contact$ = this.contacts$.pipe(
+                map(data => {
+                    return data.items[this.currentIndex_$()];
+                })
+            )
+
+            const subscription = contact$.subscribe(x => {
+                this.router.navigate([`contacts/details/${x.contactId}`])
+                    .then(_ => subscription.unsubscribe());
+            })
         }
     }
 
-
-    public currentIndex = 0;
-    public contacts$?: Observable<IListContactsResponse>;
-    public search$ = new Subject<string>();
-    public page$ = new BehaviorSubject<number>(this.req.page);
-    public sortBy$ = new Subject<string>();
-    public pageSize$ = new Subject<number>();
+    public totalPages_$ = this.listContacts.totalPages_$;
+    public currentIndex_$ = this.listContacts.currentIndex_$;
+    public pageSize_$ = this.listContacts.pageSize_$;
+    public page_$ = this.listContacts.page_$;
+    public contacts$ = this.listContacts.contacts$
+        .pipe(tap(x => this._count = x.items.length));
 
     constructor(
-        private contactService: ContactService,
+        private listContacts: ListContactsService,
+        private router: Router
     ) {
-
-        const search$ = this.search$.pipe(
-            debounceTime(500),
-            distinctUntilChanged(),
-            switchMap(s => {
-                this.req.search = s;
-                this.req.page = 1;
-                return this.contactService.listContacts(this.req);
-            }));
-
-        const page$ = this.page$.pipe(
-            distinctUntilChanged(),
-            map(p => Math.min(Math.max(p, 1), 100)),
-            switchMap(p => {
-                this.req.page = p;
-                return this.contactService.listContacts(this.req);
-            }));
-
-        const sortBy$ = this.sortBy$.pipe(
-            distinctUntilChanged(),
-            switchMap(s => {
-                this.req.sortBy = s;
-                this.req.page = 1;
-                return this.contactService.listContacts(this.req);
-            }));
-
-        const pageSize$ = this.pageSize$.pipe(
-            distinctUntilChanged(),
-            switchMap(s => {
-                this.currentIndex = 0;
-                this.req.pageSize = s;
-                this.req.page = 1;
-                return this.contactService.listContacts(this.req);
-            }));
-
-        this.contacts$ = merge(page$, search$, sortBy$, pageSize$);
     }
 
-    ngOnInit() {
+    public changePageSize = (value: number) => this.listContacts.changePageSize(value);
+    public tryNextPage = () => this.listContacts.tryNextPage();
+    public tryPrevPage = () => this.listContacts.tryPrevPage();
+    public sortBy = (value: string) => this.listContacts.sortBy(value);
+    public search = (value: string) => this.listContacts.search(value);
 
-    }
-
-    ngOnAfterViewInit() {
-
-    }
-    onNextPage() {
-        this.page$.next(this.page$.getValue() + 1);
-    }
-
-    sortBy(value: string) {
-       this.sortBy$.next(value);
+    handleRowClick(index: number, contact: IContact) {
+        this.currentIndex_$.set(index);
+        this.router.navigate([`contacts/details/${contact.contactId}`])
+            .then(_ => {
+            });
     }
 }

@@ -4,7 +4,7 @@ import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 
 export interface IContact {
-    id: number;
+    contactId: number;
     name: string;
     company: string;
     email: string;

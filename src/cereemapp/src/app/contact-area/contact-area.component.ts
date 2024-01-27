@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ListContactsComponent} from "./list-contacts/list-contacts.component";
 import {AddContactComponent} from "./add-contact/add-contact.component";
-import {RouterOutlet} from "@angular/router";
+import {RouterLink, RouterOutlet} from "@angular/router";
 import {ContactService} from "./contact.service";
 
 enum UiState {
@@ -12,7 +12,7 @@ enum UiState {
 @Component({
     selector: 'app-contact-area',
     standalone: true,
-    imports: [ListContactsComponent, AddContactComponent, RouterOutlet],
+    imports: [ListContactsComponent, AddContactComponent, RouterOutlet, RouterLink],
     templateUrl: './contact-area.component.html',
     styleUrl: './contact-area.component.css'
 })
