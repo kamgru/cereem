@@ -1,0 +1,13 @@
+<form [formGroup]="openEnrollmentForm" (ngSubmit)="handleSubmit()">
+    <div>
+        <label for="name">Name</label>
+        <input type="text" formControlName="name" id="name">
+    </div>
+    <div>
+        <label for="deadline">Deadline</label>
+        <input type="date" id="deadline" formControlName="deadline">
+    </div>
+    <div>
+        <button type="submit">Save</button>
+    </div>
+</form>

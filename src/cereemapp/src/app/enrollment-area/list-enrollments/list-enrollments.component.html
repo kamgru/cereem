@@ -1,10 +1,10 @@
 <div>
-    <input #searchInput type="text" placeholder="Search" [value]="search_$()" (input)="search(searchInput.value)"/>
+    <input #searchInput type="text" placeholder="Search" (input)="search(searchInput.value)"/>
 </div>
 
-@if (contacts$ | async; as contacts) {
+@if (enrollments$ | async; as enrollments) {
     <div>
-        total items: {{ contacts.totalCount }}
+        total items: {{ enrollments.totalCount }}
         total pages: {{ totalPages_$() }}
         current page: {{ page_$() }}
     </div>
@@ -27,13 +27,13 @@
             </tr>
             </thead>
             <tbody>
-                @for (contact of contacts.items; track contact.contactId; let i = $index) {
-                    <tr [class.idx]="i == currentIndex_$()" (click)="handleRowClick(i, contact)">
+                @for (enrollment of enrollments.items; track enrollment.enrollmentId; let i = $index) {
+                    <tr [class.idx]="i == currentIndex_$()" (click)="handleRowClick(i, enrollment)">
                         <td>{{ (page_$() - 1) * pageSize_$() + i + 1 }}</td>
-                        <td>{{ contact.name }}</td>
-                        <td>{{ contact.company }}</td>
-                        <td>{{ contact.phone }}</td>
-                        <td>{{ contact.email }}</td>
+                        <td>{{ enrollment.name }}</td>
+                        <td>{{ enrollment.deadline }}</td>
+                        <td>{{ enrollment.enrollmentCount }}</td>
+                        <td>{{ enrollment.state }}</td>
                     </tr>
                 }
             </tbody>

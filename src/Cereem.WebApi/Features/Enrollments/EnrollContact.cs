@@ -55,6 +55,16 @@ public partial class EnrollmentController
             {
                 return CereemResult.Failure("Contact already enrolled");
             }
+            
+            if (enrollment.State != EnrollmentState.Open)
+            {
+                return CereemResult.Failure("Enrollment is not open");
+            }
+            
+            if (enrollment.Deadline < DateTime.UtcNow)
+            {
+                return CereemResult.Failure("Enrollment deadline has passed");
+            }
 
             enrollment.Contacts.Add(contact);
             await context.SaveChangesAsync();

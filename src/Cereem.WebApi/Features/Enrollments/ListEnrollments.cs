@@ -43,6 +43,7 @@ public partial class EnrollmentController
         public required string Name { get; set; }
         public int ContactCount { get; set; }
         public required string State { get; set; }
+        public required DateTime Deadline { get; set; }
     }
 
     [Injectable]
@@ -57,7 +58,8 @@ public partial class EnrollmentController
                     EnrollmentId = x.EnrollmentId,
                     Name = x.Name,
                     ContactCount = x.Contacts.Count,
-                    State = x.State.ToString()
+                    State = x.State.ToString(),
+                    Deadline = x.Deadline
                 });
 
             if (!string.IsNullOrEmpty(request.Search))

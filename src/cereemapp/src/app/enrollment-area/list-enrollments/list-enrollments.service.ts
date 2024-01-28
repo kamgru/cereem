@@ -1,4 +1,4 @@
-import {computed, Injectable, Signal, signal} from '@angular/core';
+import {Injectable, signal} from '@angular/core';
 import {
     BehaviorSubject,
     debounceTime,
@@ -10,30 +10,48 @@ import {
     switchMap,
     tap
 } from "rxjs";
-import {IContact, IListContactsResponse, ListContactsRequest} from "../contact.service";
 import {HttpClient} from "@angular/common/http";
 import {environment} from "../../../environments/environment";
+
+class ListEnrollmentsRequest {
+    public page: number = 1;
+    public pageSize: number = 10;
+    public search: string = '';
+    public sortBy: string = 'name';
+    public sortDesc: boolean = false;
+}
+
+export interface IListEnrollmentsResponse {
+    items: IEnrollmentItem[];
+    totalCount: number;
+}
+
+export interface IEnrollmentItem {
+    enrollmentId: number;
+    name: string;
+    state: string;
+    deadline: Date;
+    enrollmentCount: number;
+}
 
 @Injectable({
     providedIn: 'root'
 })
-export class ListContactsService {
+export class ListEnrollmentsService {
 
-    private _request = new ListContactsRequest();
+    private _request = new ListEnrollmentsRequest();
     private _search$ = new Subject<string>();
     private _page$ = new BehaviorSubject<number>(this._request.page);
     private _sortBy$ = new Subject<string>();
     private _pageSize$ = new Subject<number>();
     private _count: number = 0;
-    private _contacts: IContact[] = [];
 
     public totalPages_$ = signal(10);
     public currentIndex_$ = signal(0);
     public pageSize_$ = signal(10);
     public page_$ = signal(1);
-    public search_$ = signal('');
-    public contacts$: Observable<IListContactsResponse>;
-    public selectedContact$: Subject<IContact> = new Subject<IContact>();
+    public enrollments$: Observable<IListEnrollmentsResponse>;
+    public selectedContact$: Subject<IEnrollmentItem> = new Subject<IEnrollmentItem>();
 
     constructor(
         private http: HttpClient,
@@ -77,17 +95,16 @@ export class ListContactsService {
                 return this.listContacts(this._request);
             }));
 
-        this.contacts$ = merge(page$, search$, sortBy$, pageSize$)
+        this.enrollments$ = merge(page$, search$, sortBy$, pageSize$)
             .pipe(
                 tap(x => {
                     this.totalPages_$.set(Math.ceil(x.totalCount / this._request.pageSize));
                     this._count = x.items.length;
-                    this._contacts = x.items;
                 }));
     }
 
-    public listContacts(req: ListContactsRequest): Observable<IListContactsResponse> {
-        return this.http.get<IListContactsResponse>(`${environment.apiUrl}/api/v1/contact`, {
+    public listContacts(req: ListEnrollmentsRequest): Observable<IListEnrollmentsResponse> {
+        return this.http.get<IListEnrollmentsResponse>(`${environment.apiUrl}/api/v1/enrollments`, {
             params: {
                 page: req.page.toString(),
                 pageSize: req.pageSize.toString(),
@@ -126,11 +143,10 @@ export class ListContactsService {
     }
 
     search(value: string) {
-        this.search_$.set(value);
         this._search$.next(value);
     }
 
-    tryHandleKey(event: KeyboardEvent): boolean {
+    tryHandleKey(event: KeyboardEvent) : boolean {
         switch (event.key) {
             case 'ArrowDown': {
                 this.currentIndex_$.set(this.currentIndex_$() + 1);
@@ -165,9 +181,15 @@ export class ListContactsService {
                 return true;
             }
             case 'Enter': {
-                const index = this.currentIndex_$();
-                const contact = this._contacts[index];
-                this.selectedContact$.next(contact);
+                const subs = this.enrollments$.pipe(
+                    map(x => {
+                        return x.items[this.currentIndex_$()]
+                    }))
+                    .subscribe(x => {
+                        this.selectedContact$.next(x)
+                        subs.unsubscribe();
+                    });
+
                 return true;
             }
         }

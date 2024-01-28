@@ -3,6 +3,7 @@ using System;
 using Cereem.WebApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Cereem.WebApi.Data.Migrations
 {
     [DbContext(typeof(CereemContext))]
-    partial class CereemContextModelSnapshot : ModelSnapshot
+    [Migration("20240128081753_AddEnrollmentDeadline")]
+    partial class AddEnrollmentDeadline
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

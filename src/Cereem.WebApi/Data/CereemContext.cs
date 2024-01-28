@@ -58,6 +58,7 @@ public class Enrollment
     public required string EnrollmentId { get; set; }
     public required string Name { get; set; }
     public EnrollmentState State { get; set; }
+    public DateTime Deadline { get; set; }
     public required ICollection<Contact> Contacts { get; set; } = [];
     
     public class TypeConfig : IEntityTypeConfiguration<Enrollment>

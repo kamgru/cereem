@@ -1,0 +1,18 @@
+<h1>Enrollment</h1>
+<h2>{{ enrollment?.name }}</h2>
+<hr/>
+@if (uiState === UiState.View) {
+    <table>
+        @for (contact of enrollment?.contacts; track contact.contactId; let i = $index) {
+            <div>{{ contact.name }}</div>
+            <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ contact.name }}</td>
+            </tr>
+        }
+    </table>
+    <button (click)="addContact()">Add Contact</button>
+}
+@else {
+    <app-list-contacts (OnContactSelected)="handleContactSelected($event)"></app-list-contacts>
+}

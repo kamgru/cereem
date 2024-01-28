@@ -24,6 +24,7 @@ public partial class EnrollmentController
     public class OpenEnrollmentRequest
     {
         public required string Name { get; set; }
+        public required DateTime Deadline { get; set; }
     }
 
     public class OpenEnrollmentResponse
@@ -40,6 +41,7 @@ public partial class EnrollmentController
             Enrollment enrollment = new()
             {
                 Name = request.Name,
+                Deadline = request.Deadline,
                 EnrollmentId = Guid.NewGuid()
                     .ToString(),
                 Contacts = []
